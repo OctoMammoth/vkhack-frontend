@@ -4,7 +4,9 @@ import Layout from '../components/header/LayoutHeader'
 import axios from 'axios'
 import Cookie from 'js-cookie'
 import Logo from '../img/kok.png'
-import Login from './login'
+import Nanogram from "nanogram.js";
+import InstBlock from "../components/instblock";
+
 const Container = styled.div`
     display: flex;
     justify-content: center;
@@ -53,16 +55,16 @@ const DivList = styled.div`
     flex-direction: row;
     width: 800px;
 `
-const InstBlock = styled.div`
-    width: 242.8px;
-    height: 242.8px;
-    background-color: gray;
-`
+
 const Profile = () => {
     const [name, setName] = useState('')
     const [surname, setSurname] = useState('')
     const [login, setLogin] = useState('')
     const [role, setRole] = useState(false)
+    const [instagram, setInstagram] = useState("");
+  const [photo, setPhoto] = useState("");
+  const instagramParser = new Nanogram();
+
     useEffect(() => {
         let token = Cookie.get('jwttoken')
         if (token) {
@@ -91,6 +93,15 @@ const Profile = () => {
                 setSurname(res.data.data.user.surname)
                 setRole(res.data.data.user.role)
                 console.log('res', res)
+                if (res.data.data.user.instagram){
+                setInstagram(res.data.data.user.instagram)
+                instagramParser
+                .getMediaByUsername(res.data.data.user.instagram)
+                .then((media) => {
+                  console.log(media.profile.edge_owner_to_timeline_media.edges);
+                  setPhoto(media.profile.edge_owner_to_timeline_media.edges);
+                });
+            }
             })
         }
     }, [])
@@ -116,10 +127,10 @@ const Profile = () => {
                     </div>
                 </Div>
                 <MainDiv>
-                    <Text>Instagram</Text>
+                    <Text>{instagram ?`Instagram: ${instagram}`:""}</Text>
                 </MainDiv>
                 <DivList>
-                    <InstBlock></InstBlock>
+                    {photo ? photo.map((e) => <InstBlock ul={e} />) : null}
                 </DivList>
             </Container>
         </Layout>
